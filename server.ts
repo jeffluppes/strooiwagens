@@ -41,6 +41,7 @@ export class Properties {
  */
 export class Feature {
     public Id: string;
+    public type: string;
     public geometry: Geometry;
     public properties: Properties;
 	public sensors: Sensors;
@@ -94,14 +95,17 @@ export class fetchData {
 			} else {
 				geoJSON.timestamps = [Date.now()];
 			}
-		
-			geoJSON.url = this.url;
+
+            geoJSON.url = this.url;
+            geoJSON.type = "FeatureCollection";
+            geoJSON.timestamps = [Date.now()];            
             
             wagens.wagens.forEach((w: Wagen) => {
                var feature = new Feature();
                feature.properties = new Properties();
                feature.geometry = new Geometry();
                feature.Id = w.id;
+               feature.type = "feature"
                feature.properties.workcode_id = w.workcode_id;
                feature.geometry.type = "Point";
                feature.geometry.coordinates = [Number(w.longitude), Number(w.latitude)];
