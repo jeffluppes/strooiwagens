@@ -50,7 +50,8 @@ export class Feature {
  * Sensor data definition
  */
 export class Sensors {
-    //todo
+    public pastCoordinates: number[][];
+    public workcode_id: number[];
 }
 
 export class Wagens {
@@ -90,28 +91,44 @@ export class fetchData {
             var wagens = new Wagens();
             //console.log(body);
 			wagens.wagens = JSON.parse(body);				
-			if (geoJSON.timestamps) {
-				geoJSON.timestamps.push(Date.now());
-			} else {
-				geoJSON.timestamps = [Date.now()];
-			}
 
-            geoJSON.url = this.url;
-            geoJSON.type = "FeatureCollection";
-            geoJSON.timestamps = [Date.now()];            
-            
-            wagens.wagens.forEach((w: Wagen) => {
-               var feature = new Feature();
-               feature.properties = new Properties();
-               feature.geometry = new Geometry();
-               feature.Id = w.id;
-               feature.type = "feature"
-               feature.properties.workcode_id = w.workcode_id;
-               feature.geometry.type = "Point";
-               feature.geometry.coordinates = [Number(w.longitude), Number(w.latitude)];
-               geoJSON.features.push(feature);
-            });
-			
+            if(geoJSON.hasOwnProperty("timestamps") ) {
+                //not dealing with a fresh file
+                console.log("Updating features..");
+                // for each wagen, check if there is a feature that corresponds to it - and add the data 
+                wagens.wagens.forEach((w: Wagen) => {
+                    geoJSON.features.forEach((f: Feature) => {
+                        if (w.id === f.Id) {
+                            f.properties.workcode_id = w.workcode_id;
+                            f.geometry.coordinates = [Number(w.longitude), Number(w.latitude)];
+                            f.sensors.pastCoordinates.push([Number(w.longitude), Number(w.latitude)]);
+                            f.sensors.workcode_id.push(w.workcode_id);
+                        }
+                    });
+                });
+                geoJSON.timestamps.push(Date.now());
+            } else {
+                // Oh snap, let's build our GeoJSON then.
+                geoJSON.url = this.url;
+                geoJSON.type = "FeatureCollection";
+                geoJSON.timestamps = [Date.now()];
+                console.log("Populating features..");          
+                wagens.wagens.forEach((w: Wagen) => {
+                    var feature = new Feature();
+                    feature.properties = new Properties();
+                    feature.geometry = new Geometry();
+                    feature.sensors = new Sensors();
+                    feature.Id = w.id;
+                    feature.type = "feature"
+                    feature.properties.workcode_id = w.workcode_id;
+                    feature.geometry.type = "Point";
+                    feature.geometry.coordinates = [Number(w.longitude), Number(w.latitude)];
+                    feature.sensors.pastCoordinates = [[Number(w.longitude), Number(w.latitude)]];
+                    feature.sensors.workcode_id = [w.workcode_id];
+                    geoJSON.features.push(feature);
+                });   
+            }
+
 			fs.writeFile('wagens.json', JSON.stringify(geoJSON), function(err) {
       			if (err) throw err;
       			console.log("Data has been saved to disk!");
