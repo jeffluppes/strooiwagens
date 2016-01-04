@@ -98,7 +98,7 @@ var fetchData = (function () {
                 wagens.wagens.forEach(function (w) {
                     geoJSON.features.forEach(function (f) {
                         if (w.id === f.Id) {
-                            f.properties.workcode_id = w.workcode_id;
+                            f.properties.workcode_id = Number(w.workcode_id);
                             f.geometry.coordinates = [Number(w.longitude), Number(w.latitude)];
                             f.sensors.pastCoordinates.push([Number(w.longitude), Number(w.latitude)]);
                             f.sensors.workcode_id.push(w.workcode_id);
@@ -119,7 +119,7 @@ var fetchData = (function () {
                     feature.geometry = new Geometry();
                     feature.sensors = new Sensors();
                     feature.Id = w.id;
-                    feature.type = "feature";
+                    feature.type = "Feature";
                     feature.properties.workcode_id = w.workcode_id;
                     feature.geometry.type = "Point";
                     feature.geometry.coordinates = [Number(w.longitude), Number(w.latitude)];
